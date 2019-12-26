@@ -1,0 +1,61 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+.page {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+.login-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+.chat-container {
+  display: none;
+  height: 100%;
+}
+.chat-container .chat-content{
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.text-content {
+  box-sizing: border-box;
+  overflow: auto;
+  flex: 1;
+  padding: 5%;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+}
+.text-content li {
+  list-style: none;
+  padding-bottom: 10px;
+}
+.text-content .other {
+  color: #222;
+}
+.text-content .other .name, .text-content .me .name {
+  font-size: 12px;
+  color: #ccc;
+}
+.text-content .me .name{
+  text-align: right;
+}
+.text-content .other .text {
+  padding-right: 10%;
+}
+.text-content .me .text {
+  padding-left: 10%;
+}
+.text-content .me {
+  color: #333;
+}
+.input-content {
+  height: 100px;
+}

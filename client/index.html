@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>聊天室</title>
+  <link rel="stylesheet" href="./css/index.css">
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+
+<body>
+  <div class="page">
+    <div class="login-container">
+      <div class="login-content">
+        <input id="login-text" type="text" placeholder="真实姓名"><br>
+        <button id="login-btn">登录</button>
+      </div>
+    </div>
+    <div class="chat-container">
+      <div class="chat-content">
+        <div class="text-content">
+          <ul id="ul">
+            <li class="other">
+              <div class="name" id="tips">提示 </span></div>
+              <div class="text">说话</div>
+            </li>
+          </ul>
+        </div>
+        <div class="input-content">
+          <input type="text" id="text"> <button id="send">发送</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <script>
+    const socket = io('http://liujian.flycua.com:3000');
+
+    var tips = document.querySelector('#tips')
+    var loginC = document.querySelector('.login-container')
+    var textC = document.querySelector('.chat-container')
+    var text = document.querySelector('#text')
+    var button = document.querySelector('#send')
+    var loginText = document.querySelector('#login-text')
+    var loginBtn = document.querySelector('#login-btn')
+    var ul = document.querySelector('#ul')
+
+    var userName = getUserName()
+    isLogin = !!userName;
+    if (isLogin) {
+      socket.emit('login', userName)
+    }
+    function keyDown(e, cb){
+      if(e.keyCode == 13){
+        cb()
+      }
+    }
+    function getUserName(){
+      return localStorage.getItem('userName') || loginText.name
+    }
+    let login = false;
+    function createElement(type, text, className) {
+      var element = document.createElement(type)
+      var textNode = document.createTextNode(text)
+      var attr = document.createAttribute('class')
+      attr.value = className;
+      element.appendChild(textNode);
+      element.setAttributeNode(attr);
+      return element
+    }
+    function createLi(name, text) {
+      var isSelf = name === localStorage.getItem('userName')
+      var liClassName = isSelf ? 'me' : 'other';
+      var nameNode = isSelf ? '我：' : name + '：';
+      var li = createElement('li', '', liClassName);
+      var e1 = createElement('div', nameNode, 'name')
+      var e2 = createElement('div', text, 'text')
+      li.appendChild(e1)
+      li.appendChild(e2)
+      return li
+    }
+
+    Object.defineProperty(this, 'isLogin', {
+      get() {
+        return login
+      },
+      set(v) {
+        login = v;
+        if (v) {
+          loginC.style.display = 'none'
+          textC.style.display = 'block'
+        } else {
+          loginC.style.display = 'block'
+          textC.style.display = 'none'
+        }
+
+      }
+    })
+
+
+    socket.on('connect', () => {
+      console.log('连接成功')
+    })
+    socket.on('login', (res) => {
+      isLogin = res.ok
+      switch (res.code) {
+        case '001':
+          localStorage.setItem('userName', res.name )
+          break;
+        case '002':
+          alert('被挤掉了')
+          localStorage.setItem('userName', '' )
+          break;
+        case '003':
+          alert('用户名不对')
+          break;
+        case '004':
+          alert('断开连接')
+          break;
+        default:
+          break;
+      }
+    })
+    socket.on('count', (res) => {
+      tips.innerHTML = '提示：共有 '+res+' 人'
+    })
+    socket.on('chat message', (data) => {
+      console.log(data)
+      const { userName, msg } = data;
+      var li = createLi(userName, msg)
+      ul.appendChild(li)
+    })
+    socket.on('disconnect', () => {
+      console.log('断开连接')
+      alert('断开连接，从新登录')
+      socket.emit('login', userName)
+
+    })
+
+    button.addEventListener('click', () => {
+      var value = text.value.trim()
+      if (value !== '') {
+        socket.emit('send chat message', value)
+        text.value = ''
+      }
+    })
+    loginBtn.addEventListener('click', () => {
+      var name = loginText.value.trim()
+      if (name === '') return
+      socket.emit('login', name)
+    })
+    document.addEventListener('keydown',  (e) => {
+      if(isLogin){
+        keyDown(e, () => button.click())
+      }else{
+        keyDown(e, () => loginBtn.click())
+      }
+    })
+
+
+  </script>
+</body>
+
+</html>
